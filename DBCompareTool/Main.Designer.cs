@@ -55,6 +55,7 @@
 			this.chkLockScrollY = new System.Windows.Forms.CheckBox();
 			this.btnFile1 = new System.Windows.Forms.Button();
 			this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+			this.radNamed = new System.Windows.Forms.RadioButton();
 			this.pnlGrids.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.splitContainer)).BeginInit();
 			this.splitContainer.Panel1.SuspendLayout();
@@ -127,6 +128,7 @@
 			// 
 			this.pnlHeader.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+			this.pnlHeader.Controls.Add(this.radNamed);
 			this.pnlHeader.Controls.Add(this.btnValidate);
 			this.pnlHeader.Controls.Add(this.label2);
 			this.pnlHeader.Controls.Add(this.radCols);
@@ -364,6 +366,16 @@
 			this.btnFile1.UseVisualStyleBackColor = true;
 			this.btnFile1.Click += new System.EventHandler(this.ButtonFind_Click);
 			// 
+			// radNamed
+			// 
+			this.radNamed.AutoSize = true;
+			this.radNamed.Location = new System.Drawing.Point(415, 28);
+			this.radNamed.Name = "radNamed";
+			this.radNamed.Size = new System.Drawing.Size(59, 17);
+			this.radNamed.TabIndex = 24;
+			this.radNamed.Text = "Named";
+			this.radNamed.UseVisualStyleBackColor = true;
+			// 
 			// Main
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -418,6 +430,7 @@
 		private System.Windows.Forms.RadioButton radRow;
 		private System.Windows.Forms.Label label2;
 		private System.Windows.Forms.Button btnValidate;
+		private System.Windows.Forms.RadioButton radNamed;
 	}
 }
 

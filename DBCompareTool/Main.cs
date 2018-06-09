@@ -143,8 +143,10 @@ namespace DBCompareTool
 
 			if (radRow.Checked)
 				CompareRows();
-			else
+			else if (radCols.Checked)
 				CompareCols();
+			else if (radNamed.Checked)
+				CompareNamed();
 
 			dgOriginal.ResumeLayout();
 			dgNew.ResumeLayout();
@@ -324,7 +326,7 @@ namespace DBCompareTool
 					string val1 = dgOriginal.Rows[x].Cells[i].Value.ToString();
 					string val2 = dgNew.Rows[x].Cells[i].Value.ToString();
 
-					if (val1 == val2 && val1 == "0")
+					if (val1 == val2 && (val1 == "0" || val1 == ""))
 					{
 						Interlocked.Decrement(ref rows);
 					}
@@ -336,11 +338,12 @@ namespace DBCompareTool
 					}
 				});
 
+				float perc = rows == 0 ? 1 : (matches / (float)rows);
 				matchPercentage[i] = new MatchPerc()
 				{
 					Col1 = dgOriginal.Columns[i].Name,
 					Col2 = dgNew.Columns[i].Name,
-					Percent = Math.Round(matches / (float)rows, 2)
+					Percent = Math.Round(perc, 2)
 				};
 			}
 
@@ -349,19 +352,45 @@ namespace DBCompareTool
 
 		private void CompareNamed()
 		{
-			var oldlookup = dgOriginal.Columns.Cast<DataGridViewColumn>().Select((x, i) => new { X = x, I = i });
-			var newlookup = dgNew.Columns.Cast<DataGridViewColumn>().Select((x, i) => new { X = x, I = i });
-
-			var matchingCols = (from o in oldlookup
-								join x in newlookup on o.X equals x.X
-								select new { OI = o.I, NI = x.I })
+			var matchingCols = (from o in dgOriginal.Columns.Cast<DataGridViewColumn>()
+								join x in dgNew.Columns.Cast<DataGridViewColumn>() on o.Name equals x.Name
+								select new { OrgIndex = o.Index, NewIndex = x.Index })
 								.ToArray();
 
-			int rows = Math.Min(dgOriginal.RowCount, dgNew.RowCount);
+			List<MatchPerc> matchPercentage = new List<MatchPerc>();
+
 			foreach (var c in matchingCols)
 			{
+				int rows = Math.Min(dgOriginal.RowCount, dgNew.RowCount);
+				int matches = 0;
 
+				Parallel.For(0, rows, x =>
+				{
+					string val1 = dgOriginal.Rows[x].Cells[c.OrgIndex].Value.ToString();
+					string val2 = dgNew.Rows[x].Cells[c.NewIndex].Value.ToString();
+
+					if (val1 == val2 && (val1 == "0" || val1 == ""))
+					{
+						Interlocked.Decrement(ref rows);
+					}
+					else if (val1 == val2)
+					{
+						dgOriginal.Rows[x].Cells[c.OrgIndex].Style.BackColor = Color.LightGreen;
+						dgNew.Rows[x].Cells[c.NewIndex].Style.BackColor = Color.LightGreen;
+						Interlocked.Increment(ref matches);
+					}
+				});
+
+				float perc = rows == 0 ? 1 : (matches / (float)rows);
+				matchPercentage.Add(new MatchPerc()
+				{
+					Col1 = dgOriginal.Columns[c.OrgIndex].Name,
+					Col2 = dgNew.Columns[c.NewIndex].Name,
+					Percent = Math.Round(perc, 2)
+				});
 			}
+
+			new Popup { Data = matchPercentage }.ShowDialog();
 		}
 
 		private void ValidateDefinition()
