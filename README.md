@@ -5,7 +5,7 @@ Controls:
 - Lock Scroll X/Y: both grid's scroll bars are synchronized and scroll by cell width/height when using the scroll arrows
 - Matching Ids Only: only shows rows where the first column values intersect
 - Rows/Cols/Named: comparison type
-  - Row: sequentially compares rows, green for full match, blue for first X match
+  - Rows: sequentially compares rows, green for full match, blue for first X match
   - Cols: sequentially compares columns, matched cells are green, displays % match for each column
   - Named: same as cols but for columns with the same name
 - Validate Def: validates every definition against every file and lists all errors

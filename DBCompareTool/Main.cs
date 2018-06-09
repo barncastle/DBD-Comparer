@@ -290,7 +290,6 @@ namespace DBCompareTool
 				var vals2 = (dgNew.Rows[i].DataBoundItem as DataRowView).Row.ItemArray;
 
 				int matching = Enumerable.Range(0, length).TakeWhile(x => vals1[x].ToString() == vals2[x].ToString()).Count();
-				Color colour = matching == preffered ? Color.LightGreen : Color.LightBlue;
 
 				if (matching == preffered)
 				{
@@ -302,8 +301,8 @@ namespace DBCompareTool
 				{
 					for (int x = 0; x < matching; x++)
 					{
-						dgOriginal.Rows[i].Cells[x].Style.BackColor = Color.LightGreen;
-						dgNew.Rows[i].Cells[x].Style.BackColor = Color.LightGreen;
+						dgOriginal.Rows[i].Cells[x].Style.BackColor = Color.LightBlue;
+						dgNew.Rows[i].Cells[x].Style.BackColor = Color.LightBlue;
 					}
 				}
 			});
