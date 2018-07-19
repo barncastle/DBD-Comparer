@@ -42,6 +42,7 @@ namespace DBCompareTool
 			dgNew.DoubleBuffer();
 
 			AllDBs = Directory.EnumerateFiles(DBC_LOCATION, "*.db*", SearchOption.AllDirectories).Select(x => x.ToUpper())
+							  .Where(x => !x.EndsWith("DBD"))
 							  .GroupBy(x => Path.GetFileNameWithoutExtension(x))
 							  .OrderBy(x => x.Key)
 							  .ToDictionary(x => x.Key, x => x.ToArray());
@@ -280,16 +281,24 @@ namespace DBCompareTool
 
 		private void CompareRows()
 		{
-			int length = Math.Min(dgOriginal.ColumnCount, dgNew.ColumnCount);
-			int preffered = Math.Max(dgOriginal.ColumnCount, dgNew.ColumnCount);
+			var orgstringidx = LocStringIndicies(dgOriginal);
+			var newstringidx = LocStringIndicies(dgNew);
+
+			var orgcols = Enumerable.Range(0, dgOriginal.ColumnCount).Except(orgstringidx.Values.SelectMany(x => x)).ToArray();
+			var newcols = Enumerable.Range(0, dgNew.ColumnCount).Except(newstringidx.Values.SelectMany(x => x)).ToArray();
+
+			int length = Math.Min(orgcols.Length, newcols.Length);
+			int preffered = Math.Max(orgcols.Length, newcols.Length);
 
 			int matches = 0;
-			Parallel.For(0, dgOriginal.Rows.Count, i =>
+			Parallel.For(0, dgOriginal.RowCount, i =>
 			{
 				var vals1 = (dgOriginal.Rows[i].DataBoundItem as DataRowView).Row.ItemArray;
 				var vals2 = (dgNew.Rows[i].DataBoundItem as DataRowView).Row.ItemArray;
 
-				int matching = Enumerable.Range(0, length).TakeWhile(x => vals1[x].ToString() == vals2[x].ToString()).Count();
+				int matching = Enumerable.Range(0, length).TakeWhile(x =>
+					vals1[orgcols[x]].ToString().ToLower() == vals2[newcols[x]].ToString().ToLower()
+				).Count();
 
 				if (matching == preffered)
 				{
@@ -301,13 +310,20 @@ namespace DBCompareTool
 				{
 					for (int x = 0; x < matching; x++)
 					{
-						dgOriginal.Rows[i].Cells[x].Style.BackColor = Color.LightBlue;
-						dgNew.Rows[i].Cells[x].Style.BackColor = Color.LightBlue;
+						dgOriginal.Rows[i].Cells[orgcols[x]].Style.BackColor = Color.LightBlue;
+						if (orgstringidx.ContainsKey(orgcols[x]))
+							foreach (var idx in orgstringidx[orgcols[x]])
+								dgOriginal.Rows[i].Cells[idx].Style.BackColor = Color.LightBlue;
+
+						dgNew.Rows[i].Cells[newcols[x]].Style.BackColor = Color.LightBlue;
+						if (newstringidx.ContainsKey(newcols[x]))
+							foreach (var idx in newstringidx[newcols[x]])
+								dgNew.Rows[i].Cells[idx].Style.BackColor = Color.LightBlue;
 					}
 				}
 			});
 
-			lblMatch.Text = "Full Matches: " + matches;
+			lblMatch.Text = $"Matches: {matches} ({((double)matches / dgOriginal.Rows.Count).ToString("0.00%")})";
 		}
 
 		private void CompareCols()
@@ -432,6 +448,15 @@ namespace DBCompareTool
 			{
 				MessageBox.Show("Smashing job!");
 			}
+		}
+
+		private Dictionary<int, int[]> LocStringIndicies(DataGridView dg)
+		{
+			return dg.Columns.Cast<DataGridViewColumn>()
+					 .Where(x => x.Name.EndsWith("_lang") || x.Name.Contains("_lang_"))
+					 .GroupBy(x => x.Name.Split(new[] { "_lang" }, StringSplitOptions.None).First())
+					 .Where(x => x.Count() > 0)
+					 .ToDictionary(x => x.First().Index, x => x.Skip(1).Select(y => y.Index).ToArray());
 		}
 	}
 }
